@@ -15,8 +15,8 @@ namespace RecorderWebBrowser
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this;  
-            LogEntries = new ObservableCollection<LogEntry>();  
+            DataContext = this;
+            LogEntries = new ObservableCollection<LogEntry>();
             InitializeWebView();
         }
 
@@ -24,7 +24,7 @@ namespace RecorderWebBrowser
         {
             await webView.EnsureCoreWebView2Async();
             webView.CoreWebView2.NavigationStarting += WebView_NavigationStarting;
-            webView.CoreWebView2.NavigationCompleted += WebView_NavigationCompleted;
+            //webView.CoreWebView2.NavigationCompleted += WebView_NavigationCompleted;
             webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
             string script = @"
@@ -33,9 +33,8 @@ namespace RecorderWebBrowser
                         window.chrome.webview.postMessage(message);
                     }
 
-                    // Function to log events with focus on 'id'
                     function logEvent(element, eventType, value = '') {
-                        let id = element.id ? `id=${element.id}` : ''; // Only capture 'id' attribute
+                        let id = element.id ? `id=${element.id}` : ''; 
                         let logMessage = `${element.tagName} ${id} ${value ? 'value: ' + value : ''} ${eventType}`;
                         sendMessage(logMessage);
                     }
@@ -44,12 +43,8 @@ namespace RecorderWebBrowser
                         logEvent(event.target, 'Click');
                     });
 
-                    document.addEventListener('input', function(event) {
+                    document.addEventListener('change', function(event) {
                         logEvent(event.target, 'Input', event.target.value);
-                    });
-
-                    document.addEventListener('focusin', function(event) {
-                        logEvent(event.target, 'Focus');
                     });
                 })();
             ";
@@ -80,7 +75,7 @@ namespace RecorderWebBrowser
         {
             if (e.IsSuccess)
             {
-                LogInteraction("", "200", "statusCode", "", "VerifyPageStatus");
+                LogInteraction("", "", "statusCode", "200", "VerifyPageStatus");
             }
             else
             {
@@ -91,16 +86,16 @@ namespace RecorderWebBrowser
         private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string message = e.TryGetWebMessageAsString();
-            LogMessageReceived(message);  
+            LogMessageReceived(message);
         }
 
         private void LogMessageReceived(string message)
         {
-            string[] parts = message.Split(' ');  
-            string tagName = parts[0];  
+            string[] parts = message.Split(' ');
+            string tagName = parts[0];
             string idAttribute = parts[1].Contains("id=") ? parts[1].Replace("id=", "").Trim() : "";
-            string action = parts[^1];  
-            string value = message.Contains("value:") ? parts[^2].Replace("value:", "").Trim() : "";  
+            string action = parts[^1];
+            string value = message.Contains("value:") ? parts[^2].Replace("value:", "").Trim() : "";
 
             LogInteraction("id", idAttribute, "value", value, action);
         }
@@ -121,6 +116,11 @@ namespace RecorderWebBrowser
 
             string logMessage = $"{logEntry.StepNumber}\t{logEntry.Attribute}\t{logEntry.AttributeValue}\t{logEntry.ValueType}\t{logEntry.Value}\t{logEntry.Action}";
             File.AppendAllText(logFilePath, logMessage + Environment.NewLine);
+        }
+
+        private void txtUrl_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+
         }
     }
 

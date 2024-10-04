@@ -6,28 +6,25 @@
         xmlns:local="clr-namespace:RecorderWebBrowser"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="1200">
+        Title="Recorder Web Browser" WindowState="Maximized" d:DesignHeight="647.02" d:DesignWidth="1023.617">
     <Grid>
-        <!-- TextBox for URL input -->
-        <TextBox x:Name="txtUrl" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="800" Margin="10,10,0,0" Text="https://www.example.com"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- "Go" Button -->
-        <Button x:Name="btnNavigate" Content="Go" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Margin="820,10,0,0" Click="btnNavigate_Click"/>
+        <DockPanel Grid.Row="0" Margin="10">
+            <TextBox x:Name="txtUrl" DockPanel.Dock="Left" Height="30" Width="941" Margin="0,0,5,0"
+                     Text="https://www.example.com" />
+            <Button x:Name="btnNavigate" Content="Go" Width="60" Height="30" Click="btnNavigate_Click" VerticalAlignment="Center"/>
+            <Button x:Name="btnNewTab" Content="New Tab" Width="80" Height="30" Click="btnNewTab_Click" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        </DockPanel>
 
-        <!-- WebView2 to display the browser -->
-        <wv2:WebView2 x:Name="webView" HorizontalAlignment="Left" VerticalAlignment="Top" Height="600" Width="1000" Margin="10,50,0,0"/>
-
-        <!-- DataGrid to display log entries -->
-        <DataGrid x:Name="dataGridLog" HorizontalAlignment="Left" VerticalAlignment="Top" Height="200" Width="1000" Margin="10,670,0,0" 
-                  AutoGenerateColumns="False" IsReadOnly="True" ItemsSource="{Binding LogEntries}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="#" Binding="{Binding StepNumber}" Width="50"/>
-                <DataGridTextColumn Header="Attribute" Binding="{Binding Attribute}" Width="150"/>
-                <DataGridTextColumn Header="AttributeValue" Binding="{Binding AttributeValue}" Width="200"/>
-                <DataGridTextColumn Header="Value Type" Binding="{Binding ValueType}" Width="150"/>
-                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="200"/>
-                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- TabControl để quản lý các tab -->
+        <TabControl x:Name="tabControl" Grid.Row="1">
+            <TabItem Header="New Tab">
+                <wv2:WebView2 x:Name="webView" />
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
