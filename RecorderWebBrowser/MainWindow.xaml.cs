@@ -37,19 +37,21 @@ namespace RecorderWebBrowser
                     function logEvent(element, eventType) {
                         let attribute = '';
                         let attributeValue = '';
-                        
+                        let inputValue = '';
+
                         if (element.id) {
                             attribute = 'id';
                             attributeValue = element.id;
                         } else if (element.src) {
                             attribute = 'src';
                             attributeValue = element.src;
-                        } else if (element.value) {
-                            attribute = 'value';
-                            attributeValue = element.value;
                         }
 
-                        let logMessage = `${attribute} ${attributeValue} ${eventType}`;
+                        if (element.value) {
+                            inputValue = element.value;
+                        }
+
+                        let logMessage = `${attribute} ${attributeValue} ${inputValue} ${eventType}`;
                         sendMessage(logMessage);
                     }
 
@@ -119,11 +121,22 @@ namespace RecorderWebBrowser
         {
             string[] parts = message.Split(' ');
             string attribute = parts[0]; 
-            string attributeValue = parts[1]; 
-            string action = parts[^1];  
+            string attributeValue = parts[1];
+            string action = parts[^1]; 
+            string value = "";
 
-            LogInteraction(GetActiveTabIndex(), attribute, attributeValue, "attribute", attributeValue, action);
+            if (action == "Input" && parts.Length > 2)
+            {
+                value = parts[2];  
+            }
+            else
+            {
+                value = ""; 
+            }
+
+            LogInteraction(GetActiveTabIndex(), attribute, attributeValue, "value", value, action);
         }
+
 
         private void LogInteraction(int tabIndex, string attribute, string attributeValue, string valueType, string value, string action)
         {
