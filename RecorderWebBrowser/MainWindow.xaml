@@ -6,20 +6,21 @@
         xmlns:local="clr-namespace:RecorderWebBrowser"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
-        Title="Recorder Web Browser" WindowState="Maximized" d:DesignHeight="647.02" d:DesignWidth="1023.617">
+        Title="Recorder Web Browser" WindowState="Maximized" d:DesignHeight="647.02" Width="Auto">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
 
-        <DockPanel Grid.Row="0" Margin="10">
+        <StackPanel Grid.Row="0" Margin="10" Orientation="Horizontal">
             <TextBox x:Name="txtUrl" DockPanel.Dock="Left" Height="30" Width="941" Margin="0,0,5,0"
                      Text="https://www.example.com" />
             <Button x:Name="btnNavigate" Content="Go" Width="60" Height="30" Click="btnNavigate_Click" VerticalAlignment="Center"/>
             <Button x:Name="btnNewTab" Content="New Tab" Width="80" Height="30" Click="btnNewTab_Click" VerticalAlignment="Center" Margin="5,0,0,0"/>
-        </DockPanel>
+            <Button x:Name="btnNewStage" Content="New Stage" Width="80" Height="30" Click="btnNewStage_Click" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        </StackPanel>
 
         <!-- TabControl to manage multiple tabs -->
         <TabControl x:Name="tabControl" Grid.Row="1">
@@ -30,6 +31,7 @@
         <ListView Grid.Row="2" ItemsSource="{Binding LogEntries}">
             <ListView.View>
                 <GridView>
+                    <GridViewColumn Header="Stage Number" Width="100" DisplayMemberBinding="{Binding Stage}" />
                     <GridViewColumn Header="Tab Index" Width="80" DisplayMemberBinding="{Binding TabIndex}" />
                     <GridViewColumn Header="Attribute" Width="100" DisplayMemberBinding="{Binding Attribute}" />
                     <GridViewColumn Header="AttributeValue" Width="200" DisplayMemberBinding="{Binding AttributeValue}" />

@@ -13,6 +13,7 @@ namespace RecorderWebBrowser
         private string logFilePath = "browserInteractionLog.txt";
         public ObservableCollection<LogEntry> LogEntries { get; set; }
         private int stepCounter = 1;
+        private int currentStage = 1;
 
         public MainWindow()
         {
@@ -143,6 +144,7 @@ namespace RecorderWebBrowser
             LogEntry logEntry = new LogEntry
             {
                 StepNumber = stepCounter++,
+                Stage = currentStage,
                 TabIndex = tabIndex,
                 Attribute = attribute,
                 AttributeValue = attributeValue,
@@ -169,6 +171,12 @@ namespace RecorderWebBrowser
         private int GetActiveTabIndex()
         {
             return tabControl.SelectedIndex + 1; 
+        }
+
+        private void btnNewStage_Click(object sender, RoutedEventArgs e)
+        {
+            currentStage++;
+            LogEntries.Add(new LogEntry { Stage = currentStage});
         }
     }
 }
