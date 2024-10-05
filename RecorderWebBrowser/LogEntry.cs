@@ -9,6 +9,7 @@ namespace RecorderWebBrowser
     public class LogEntry
     {
         public int StepNumber { get; set; }
+        public int TabIndex { get; set; }
         public string Attribute { get; set; }
         public string AttributeValue { get; set; }
         public string ValueType { get; set; }

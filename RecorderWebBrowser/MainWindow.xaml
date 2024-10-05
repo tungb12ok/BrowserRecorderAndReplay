@@ -11,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0" Margin="10">
@@ -20,11 +21,23 @@
             <Button x:Name="btnNewTab" Content="New Tab" Width="80" Height="30" Click="btnNewTab_Click" VerticalAlignment="Center" Margin="5,0,0,0"/>
         </DockPanel>
 
-        <!-- TabControl để quản lý các tab -->
+        <!-- TabControl to manage multiple tabs -->
         <TabControl x:Name="tabControl" Grid.Row="1">
-            <TabItem Header="New Tab">
-                <wv2:WebView2 x:Name="webView" />
-            </TabItem>
+            <!-- Initial Tab Placeholder -->
         </TabControl>
+
+        <!-- ListView to display log entries -->
+        <ListView Grid.Row="2" ItemsSource="{Binding LogEntries}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Tab Index" Width="80" DisplayMemberBinding="{Binding TabIndex}" />
+                    <GridViewColumn Header="Attribute" Width="100" DisplayMemberBinding="{Binding Attribute}" />
+                    <GridViewColumn Header="AttributeValue" Width="200" DisplayMemberBinding="{Binding AttributeValue}" />
+                    <GridViewColumn Header="Value Type" Width="100" DisplayMemberBinding="{Binding ValueType}" />
+                    <GridViewColumn Header="Value" Width="200" DisplayMemberBinding="{Binding Value}" />
+                    <GridViewColumn Header="Action" Width="150" DisplayMemberBinding="{Binding Action}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Window>

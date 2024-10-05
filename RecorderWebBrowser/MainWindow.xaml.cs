@@ -1,8 +1,10 @@
 ﻿using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace RecorderWebBrowser
 {
@@ -15,16 +17,15 @@ namespace RecorderWebBrowser
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this;
+            DataContext = this;  
             LogEntries = new ObservableCollection<LogEntry>();
-            InitializeWebView();
+            InitializeNewTab();  
         }
 
-        private async void InitializeWebView()
+        private async void InitializeWebView(WebView2 webView)
         {
             await webView.EnsureCoreWebView2Async();
             webView.CoreWebView2.NavigationStarting += WebView_NavigationStarting;
-            //webView.CoreWebView2.NavigationCompleted += WebView_NavigationCompleted;
             webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
             string script = @"
@@ -33,9 +34,22 @@ namespace RecorderWebBrowser
                         window.chrome.webview.postMessage(message);
                     }
 
-                    function logEvent(element, eventType, value = '') {
-                        let id = element.id ? `id=${element.id}` : ''; 
-                        let logMessage = `${element.tagName} ${id} ${value ? 'value: ' + value : ''} ${eventType}`;
+                    function logEvent(element, eventType) {
+                        let attribute = '';
+                        let attributeValue = '';
+                        
+                        if (element.id) {
+                            attribute = 'id';
+                            attributeValue = element.id;
+                        } else if (element.src) {
+                            attribute = 'src';
+                            attributeValue = element.src;
+                        } else if (element.value) {
+                            attribute = 'value';
+                            attributeValue = element.value;
+                        }
+
+                        let logMessage = `${attribute} ${attributeValue} ${eventType}`;
                         sendMessage(logMessage);
                     }
 
@@ -44,7 +58,7 @@ namespace RecorderWebBrowser
                     });
 
                     document.addEventListener('change', function(event) {
-                        logEvent(event.target, 'Input', event.target.value);
+                        logEvent(event.target, 'Input');
                     });
                 })();
             ";
@@ -57,8 +71,13 @@ namespace RecorderWebBrowser
             string url = txtUrl.Text.Trim();
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
-                webView.CoreWebView2.Navigate(url);
-                LogInteraction("", url, "url", "", "NavigateToUrl");
+                var selectedWebView = GetActiveWebView();
+                if (selectedWebView != null)
+                {
+                    selectedWebView.CoreWebView2.Navigate(url);
+                    var relativePath = new Uri(url).AbsolutePath;
+                    LogInteraction(GetActiveTabIndex(), "", "", "url", relativePath, "NavigateToUrl");
+                }
             }
             else
             {
@@ -66,21 +85,28 @@ namespace RecorderWebBrowser
             }
         }
 
-        private void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+        private void btnNewTab_Click(object sender, RoutedEventArgs e)
         {
-            LogInteraction("", e.Uri, "url", "", "NavigateToUrl");
+            InitializeNewTab();
         }
 
-        private void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        private void InitializeNewTab()
         {
-            if (e.IsSuccess)
-            {
-                LogInteraction("", "", "statusCode", "200", "VerifyPageStatus");
-            }
-            else
-            {
-                LogInteraction("", e.WebErrorStatus.ToString(), "statusCode", "", "Error");
-            }
+            var newTab = new TabItem();
+            newTab.Header = "New Tab " + (tabControl.Items.Count + 1);
+
+            var webView = new WebView2();
+            InitializeWebView(webView);  
+
+            newTab.Content = webView;
+            tabControl.Items.Add(newTab);
+            tabControl.SelectedItem = newTab;  
+        }
+
+        private void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+            var relativePath = new Uri(e.Uri).AbsolutePath;
+            LogInteraction(GetActiveTabIndex(), "url", e.Uri, "url", relativePath, "NavigateToUrl");
         }
 
         private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -92,19 +118,19 @@ namespace RecorderWebBrowser
         private void LogMessageReceived(string message)
         {
             string[] parts = message.Split(' ');
-            string tagName = parts[0];
-            string idAttribute = parts[1].Contains("id=") ? parts[1].Replace("id=", "").Trim() : "";
-            string action = parts[^1];
-            string value = message.Contains("value:") ? parts[^2].Replace("value:", "").Trim() : "";
+            string attribute = parts[0]; 
+            string attributeValue = parts[1]; 
+            string action = parts[^1];  
 
-            LogInteraction("id", idAttribute, "value", value, action);
+            LogInteraction(GetActiveTabIndex(), attribute, attributeValue, "attribute", attributeValue, action);
         }
 
-        private void LogInteraction(string attribute, string attributeValue, string valueType, string value, string action)
+        private void LogInteraction(int tabIndex, string attribute, string attributeValue, string valueType, string value, string action)
         {
             LogEntry logEntry = new LogEntry
             {
                 StepNumber = stepCounter++,
+                TabIndex = tabIndex,
                 Attribute = attribute,
                 AttributeValue = attributeValue,
                 ValueType = valueType,
@@ -114,15 +140,22 @@ namespace RecorderWebBrowser
 
             LogEntries.Add(logEntry);
 
-            string logMessage = $"{logEntry.StepNumber}\t{logEntry.Attribute}\t{logEntry.AttributeValue}\t{logEntry.ValueType}\t{logEntry.Value}\t{logEntry.Action}";
+            string logMessage = $"{logEntry.StepNumber}\tTabIndex: {logEntry.TabIndex}\t{logEntry.Attribute}\t{logEntry.AttributeValue}\t{logEntry.ValueType}\t{logEntry.Value}\t{logEntry.Action}";
             File.AppendAllText(logFilePath, logMessage + Environment.NewLine);
         }
 
-        private void txtUrl_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private WebView2 GetActiveWebView()
         {
+            if (tabControl.SelectedItem is TabItem selectedTab)
+            {
+                return selectedTab.Content as WebView2;
+            }
+            return null;
+        }
 
+        private int GetActiveTabIndex()
+        {
+            return tabControl.SelectedIndex + 1; 
         }
     }
-
-    
 }
